@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Mijn Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        #chatvenster {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        .gebruiker {
+            text-align: right;
+            background: #4CAF50;
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 5px 0;
+        }
+        .assistent {
+            text-align: left;
+            background: #e0e0e0;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 5px 0;
+        }
+        input {
+            padding: 10px;
+            width: 70%;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>🤖 Mijn Planningsassistent</h1>
+    <div id="chatvenster"></div>
+    <input type="text" id="invoer" placeholder="Stel een vraag...">
+    <button onclick="stuurBericht()">Stuur</button>
+
+    <script>
+        let geschiedenis = [];
+
+        async function stuurBericht() {
+            const invoer = document.getElementById("invoer");
+            const tekst = invoer.value;
+            if (!tekst) return;
+
+            geschiedenis.push({"role": "user", "content": tekst});
+            voegToeAanChat("gebruiker", tekst);
+            invoer.value = "";
+
+            const response = await fetch("http://localhost:8000/chat", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({"berichten": geschiedenis})
+            });
+
+            const data = await response.json();
+            const antwoord = data.antwoord;
+
+            geschiedenis.push({"role": "assistant", "content": antwoord});
+            voegToeAanChat("assistent", antwoord);
+        }
+
+        function voegToeAanChat(rol, tekst) {
+            const chatvenster = document.getElementById("chatvenster");
+            chatvenster.innerHTML += `<div class="${rol}">${tekst}</div>`;
+            chatvenster.scrollTop = chatvenster.scrollHeight;
+        }
+    </script>
+</body>
+</html>
